@@ -1,0 +1,4 @@
+- [x] Add remember me methods to user_data_service.dart
+- [x] Update SignIn.dart to include remember me checkbox and functionality
+- [x] Implement persistent login on app start in main.dart
+- [ ] Test the persistent login feature
