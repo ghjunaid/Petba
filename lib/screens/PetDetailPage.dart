@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:glassmorphism_ui/glassmorphism_ui.dart';
 import 'package:petba_new/chat/Model/ChatModel.dart';
 import 'package:petba_new/chat/Model/Messagemodel.dart';
 import 'package:petba_new/chat/screens/Individualpage.dart';
@@ -6,11 +7,47 @@ import 'package:petba_new/chat/socket_sevice.dart';
 import 'package:petba_new/models/adoption.dart';
 import 'package:petba_new/providers/Config.dart';
 import 'package:petba_new/services/user_data_service.dart';
+import 'package:petba_new/services/owner_service.dart';
+import 'package:petba_new/theme/color.dart';
+import 'package:petba_new/widgets/custom_image.dart';
+import 'package:petba_new/widgets/favorite_box.dart';
 
-class PetDetailPage extends StatelessWidget {
+class PetDetailPage extends StatefulWidget {
   final AdoptionPet pet;
 
   PetDetailPage({required this.pet});
+
+  @override
+  _PetDetailPageState createState() => _PetDetailPageState();
+}
+
+class _PetDetailPageState extends State<PetDetailPage> {
+  Map<String, dynamic>? ownerInfo;
+  bool isLoadingOwner = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOwnerInfo();
+  }
+
+  Future<void> _loadOwnerInfo() async {
+    try {
+      final info = await OwnerService.getOwnerInfo(widget.pet.cId);
+      if (mounted) {
+        setState(() {
+          ownerInfo = info;
+          isLoadingOwner = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isLoadingOwner = false;
+        });
+      }
+    }
+  }
 
   String _calculateAge(String dob) {
     try {
@@ -34,226 +71,405 @@ class PetDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF1a1a1a),
-      appBar: AppBar(
-        backgroundColor: Color(0xFF2d2d2d),
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.blue),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      backgroundColor: AppColor.primaryBackground,
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Pet image
-            Container(
-              width: double.infinity,
-              height: 300,
-              child: pet.img1.isNotEmpty
-                  ? Image.network(
-                '$apiurl/${pet.img1}',
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey.shade600,
-                    child: Icon(
-                      Icons.pets,
-                      size: 100,
-                      color: Colors.grey.shade400,
-                    ),
-                  );
-                },
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    color: Colors.grey.shade600,
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.blue,
-                      ),
-                    ),
-                  );
-                },
-              )
-                  : Container(
-                color: Colors.grey.shade600,
-                child: Icon(
-                  Icons.pets,
-                  size: 100,
-                  color: Colors.grey.shade400,
-                ),
-              ),
-            ),
-
-            // Pet details
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Color(0xFF2d2d2d),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Pet name
-                  Text(
-                    pet.name.toLowerCase(),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-
-                  // Pet type and location
-                  Row(
-                    children: [
-                      Icon(Icons.pets, color: Colors.white, size: 16),
-                      SizedBox(width: 4),
-                      Text(
-                        pet.animalName,
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.location_on, color: Colors.white, size: 16),
-                      SizedBox(width: 4),
-                      Text(
-                        pet.city,
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 24),
-
-                  // Pet details in a row
-                  Row(
-                    children: [
-                      // Sex
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Sex:',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 14,
-                              ),
-                            ),
-                            Text(
-                              pet.gender == 1 ? 'Male' : 'Female',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Age
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Age:',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 14,
-                              ),
-                            ),
-                            Text(
-                              _calculateAge(pet.dob),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Breed
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Breed:',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 14,
-                              ),
-                            ),
-                            Text(
-                              pet.breed,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 24),
-
-                  // ID Information
-                  Text(
-                    'Pet ID: ${pet.adoptId}',
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Customer ID: ${pet.cId}',
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
-
-                  SizedBox(height: 40),
-
-                  // Adopt button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => _handleAdoptRequest(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'Adopt',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 40),
-                ],
-              ),
-            ),
+            _buildTopImage(context),
+            _buildGlassmorphicCard(context),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildTopImage(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: MediaQuery.of(context).size.height * 0.4,
+      child: Stack(
+        children: [
+          CustomImage(
+            widget.pet.img1.isNotEmpty ? '$apiurl/${widget.pet.img1}' : '',
+            width: double.infinity,
+            height: double.infinity,
+            fit: BoxFit.fill,
+            isShadow: false,
+          ),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10,
+            left: 20,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColor.glassBackground,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppColor.glassBorder,
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  Icons.arrow_back,
+                  color: AppColor.glassTextColor,
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10,
+            right: 20,
+            child: FavoriteBox(
+              isFavorited: false, // You can implement favorite logic here
+              onTap: () {
+                // Add favorite functionality
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGlassmorphicCard(BuildContext context) {
+    return Transform.translate(
+      offset: Offset(0, -30),
+      child: GlassContainer(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        blur: 15,
+        opacity: 0.2,
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildPetInfo(),
+              SizedBox(height: 24),
+              _buildOwnerInfo(context),
+              SizedBox(height: 24),
+              _buildDescription(),
+              SizedBox(height: 32),
+              _buildAdoptButton(context),
+              SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPetInfo() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                widget.pet.name.toLowerCase(),
+                style: TextStyle(
+                  color: AppColor.glassTextColor,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            FavoriteBox(
+              isFavorited: false, // You can implement favorite logic here
+              onTap: () {
+                // Add favorite functionality
+              },
+            ),
+          ],
+        ),
+        SizedBox(height: 8),
+        Row(
+          children: [
+            Icon(
+              Icons.location_on,
+              color: AppColor.glassLabelColor,
+              size: 16,
+            ),
+            SizedBox(width: 4),
+            Text(
+              widget.pet.city,
+              style: TextStyle(
+                color: AppColor.glassLabelColor,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 16),
+        _buildPetAttributes(),
+      ],
+    );
+  }
+
+  Widget _buildPetAttributes() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _buildAttributeCard(Icons.transgender, "Sex", widget.pet.gender == 1 ? 'Male' : 'Female'),
+        _buildAttributeCard(Icons.color_lens_outlined, "Breed", widget.pet.breed),
+        _buildAttributeCard(Icons.query_builder, "Age", _calculateAge(widget.pet.dob)),
+      ],
+    );
+  }
+
+  Widget _buildAttributeCard(IconData icon, String label, String value) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColor.glassBackground,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColor.glassBorder,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            color: AppColor.glassTextColor,
+            size: 20,
+          ),
+          SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppColor.glassLabelColor,
+              fontSize: 12,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: AppColor.glassTextColor,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOwnerInfo(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColor.glassBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColor.glassBorder,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Owner",
+            style: TextStyle(
+              color: AppColor.glassTextColor,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: 12),
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 25,
+                backgroundColor: AppColor.glassBorder,
+                child: Icon(
+                  Icons.person,
+                  color: AppColor.glassTextColor,
+                  size: 30,
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isLoadingOwner 
+                        ? "Loading..." 
+                        : ownerInfo != null 
+                          ? "${ownerInfo!['firstname'] ?? ''} ${ownerInfo!['lastname'] ?? ''}".trim()
+                          : "Pet Owner",
+                      style: TextStyle(
+                        color: AppColor.glassTextColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      isLoadingOwner 
+                        ? "Loading owner info..." 
+                        : ownerInfo != null 
+                          ? ownerInfo!['email'] ?? "Customer ID: ${widget.pet.cId}"
+                          : "Customer ID: ${widget.pet.cId}",
+                      style: TextStyle(
+                        color: AppColor.glassLabelColor,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                children: [
+                  _buildActionButton(
+                    Icons.message,
+                    () => _handleAdoptRequest(context),
+                  ),
+                  SizedBox(width: 8),
+                  _buildActionButton(
+                    Icons.call,
+                    () => _handleCallOwner(context),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(IconData icon, GestureTapCallback? onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColor.primaryBlue,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Icon(
+          icon,
+          color: Colors.white,
+          size: 20,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDescription() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Description",
+          style: TextStyle(
+            color: AppColor.glassTextColor,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        SizedBox(height: 8),
+        Text(
+          "This is a wonderful ${widget.pet.animalName.toLowerCase()} named ${widget.pet.name.toLowerCase()}. They are ${widget.pet.gender == 1 ? 'male' : 'female'} and ${widget.pet.breed.toLowerCase()} breed. This lovely pet is looking for a caring home and would make a great companion.",
+          style: TextStyle(
+            color: AppColor.glassLabelColor,
+            fontSize: 16,
+            height: 1.5,
+          ),
+        ),
+        SizedBox(height: 16),
+        Row(
+          children: [
+            Text(
+              "Pet ID: ${widget.pet.adoptId}",
+              style: TextStyle(
+                color: AppColor.glassLabelColor,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAdoptButton(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () => _handleAdoptRequest(context),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColor.primaryBlue,
+          padding: EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 0,
+        ),
+        child: Text(
+          "Adopt Me",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleCallOwner(BuildContext context) async {
+    if (ownerInfo != null && ownerInfo!['telephone'] != null) {
+      final phoneNumber = ownerInfo!['telephone'];
+      // You can implement phone calling functionality here
+      // For now, show a dialog with the phone number
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: AppColor.secondaryBackground,
+          title: Text(
+            "Call Owner",
+            style: TextStyle(color: AppColor.glassTextColor),
+          ),
+          content: Text(
+            "Phone: $phoneNumber",
+            style: TextStyle(color: AppColor.glassLabelColor),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                "Close",
+                style: TextStyle(color: AppColor.primaryBlue),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Owner phone number not available'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> _handleAdoptRequest(BuildContext context) async {
@@ -308,7 +524,7 @@ class PetDetailPage extends StatelessWidget {
         name: currentUserName,
         email: userData['email'],
         phoneNumber: userData['telephone'] ?? '',
-        location: pet.city,
+        location: widget.pet.city,
         profileImageUrl: '',
         createdAt: DateTime.now(),
         token: userData['token'],
@@ -331,23 +547,23 @@ class PetDetailPage extends StatelessWidget {
 
           // Create chat model from response
           createdChatModel = ChatModel(
-            name: pet.name,
+            name: widget.pet.name,
             icon: "pet.svg",
             isGroup: false,
             time: DateTime.now().toString(),
-            currentMessage: "Chat started for ${pet.name} adoption",
-            id: pet.adoptId,
-            ownerId: pet.cId,
+            currentMessage: "Chat started for ${widget.pet.name} adoption",
+            id: widget.pet.adoptId,
+            ownerId: widget.pet.cId,
             ownerName: chatData['ownerName'] ?? "Pet Owner",
-            petName: pet.name,
-            petBreed: pet.breed,
-            petType: pet.animalName,
-            petImageUrl: '$apiurl/${pet.img1}',
+            petName: widget.pet.name,
+            petBreed: widget.pet.breed,
+            petType: widget.pet.animalName,
+            petImageUrl: '$apiurl/${widget.pet.img1}',
             isPetChat: true,
-            adoptionId: pet.adoptId.toString(),
+            adoptionId: widget.pet.adoptId.toString(),
             conversationId: int.parse(conversationId!),
             senderId: currentUserId,
-            receiverId: pet.cId,
+            receiverId: widget.pet.cId,
             interestedUserId: currentUserId,
             interestedUserName: currentUserName,
           );
@@ -366,13 +582,13 @@ class PetDetailPage extends StatelessWidget {
       // Create or get chat via socket
       socketService.createOrGetChat(
         senderId: currentUserId,
-        receiverId: pet.cId,
-        adoptionId: pet.adoptId.toString(),
-        petName: pet.name,
-        petImageUrl: '$apiurl/${pet.img1}',
-        petBreed: pet.breed,
-        petType: pet.animalName,
-        ownerName: "Pet Owner", // You might want to fetch actual owner name
+        receiverId: widget.pet.cId,
+        adoptionId: widget.pet.adoptId.toString(),
+        petName: widget.pet.name,
+        petImageUrl: '$apiurl/${widget.pet.img1}',
+        petBreed: widget.pet.breed,
+        petType: widget.pet.animalName,
+        ownerName: ownerInfo != null ? "${ownerInfo!['firstname'] ?? ''} ${ownerInfo!['lastname'] ?? ''}".trim() : "Pet Owner",
         interestedUserName: currentUserName,
       );
 
@@ -387,13 +603,13 @@ class PetDetailPage extends StatelessWidget {
 
       if (createdChatModel != null && conversationId != null) {
         socketService.sendMessage(
-          message: "Hi! I'm interested in adopting ${pet.name}. Can we discuss the details?",
+          message: "Hi! I'm interested in adopting ${widget.pet.name}. Can we discuss the details?",
           sourceId: currentUserId,
-          targetId: pet.cId,
+          targetId: widget.pet.cId,
           senderName: currentUserName,
-          receiverName: "Pet Owner",
-          adoptionId: pet.adoptId.toString(),
-          petName: pet.name,
+          receiverName: ownerInfo != null ? "${ownerInfo!['firstname'] ?? ''} ${ownerInfo!['lastname'] ?? ''}".trim() : "Pet Owner",
+          adoptionId: widget.pet.adoptId.toString(),
+          petName: widget.pet.name,
         );
         // Navigate to individual chat page
         Navigator.push(
@@ -419,23 +635,23 @@ class PetDetailPage extends StatelessWidget {
       } else {
         // Fallback: Create chat model manually and navigate
         final fallbackChatModel = ChatModel(
-          name: pet.name,
+          name: widget.pet.name,
           icon: "pet.svg",
           isGroup: false,
           time: DateTime.now().toString(),
-          currentMessage: "Chat started for ${pet.name} adoption",
-          id: pet.adoptId,
-          ownerId: pet.cId,
-          ownerName: "Pet Owner",
-          petName: pet.name,
-          petBreed: pet.breed,
-          petType: pet.animalName,
-          petImageUrl: '$apiurl/${pet.img1}',
+          currentMessage: "Chat started for ${widget.pet.name} adoption",
+          id: widget.pet.adoptId,
+          ownerId: widget.pet.cId,
+          ownerName: ownerInfo != null ? "${ownerInfo!['firstname'] ?? ''} ${ownerInfo!['lastname'] ?? ''}".trim() : "Pet Owner",
+          petName: widget.pet.name,
+          petBreed: widget.pet.breed,
+          petType: widget.pet.animalName,
+          petImageUrl: '$apiurl/${widget.pet.img1}',
           isPetChat: true,
-          adoptionId: pet.adoptId.toString(),
+          adoptionId: widget.pet.adoptId.toString(),
           conversationId: DateTime.now().millisecondsSinceEpoch,
           senderId: currentUserId,
-          receiverId: pet.cId,
+          receiverId: widget.pet.cId,
           interestedUserId: currentUserId,
           interestedUserName: currentUserName,
         );

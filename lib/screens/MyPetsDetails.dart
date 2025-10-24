@@ -68,11 +68,7 @@ class PetDetailsPage extends StatelessWidget {
     String imageUrl = '';
     if (pet['img1'] != null && pet['img1'].toString().isNotEmpty) {
       String imgPath = pet['img1'].toString();
-      if (imgPath.startsWith('/api/')) {
-        imageUrl = '$apiurl${imgPath}';
-      } else {
-        imageUrl = imgPath;
-      }
+      imageUrl = '$apiurl/$imgPath';
     }
 
     return Scaffold(
