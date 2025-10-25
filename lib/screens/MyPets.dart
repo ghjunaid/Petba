@@ -185,7 +185,9 @@ class _MyPetsPageState extends State<MyPetsPage> {
       } else {
         final errorData = json.decode(response.body);
         print('Error response: $errorData');
-        throw Exception('Failed to remove pet: ${response.statusCode} - ${errorData['error'] ?? response.body}');
+        throw Exception(
+          'Failed to remove pet: ${response.statusCode} - ${errorData['error'] ?? response.body}',
+        );
       }
     } catch (e) {
       print('Exception in _removePet: $e');
@@ -241,7 +243,9 @@ class _MyPetsPageState extends State<MyPetsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Color(0xFF2d2d2d),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
           title: Text(
             'Pet Actions',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -261,10 +265,15 @@ class _MyPetsPageState extends State<MyPetsPage> {
                     child: ElevatedButton.icon(
                       onPressed: () {
                         Navigator.pop(context);
-                        _navigateToAddForAdoption(pet); // Updated to navigate instead
+                        _navigateToAddForAdoption(
+                          pet,
+                        ); // Updated to navigate instead
                       },
                       icon: Icon(Icons.favorite, color: Colors.white),
-                      label: Text('Add for\nAdoption', textAlign: TextAlign.center),
+                      label: Text(
+                        'Add for\nAdoption',
+                        textAlign: TextAlign.center,
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
@@ -314,7 +323,9 @@ class _MyPetsPageState extends State<MyPetsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Color(0xFF2d2d2d),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
           title: Text(
             'Remove Pet',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -420,11 +431,7 @@ class _MyPetsPageState extends State<MyPetsPage> {
               color: Color(0xFF2d2d2d),
               borderRadius: BorderRadius.circular(60),
             ),
-            child: Icon(
-              Icons.pets,
-              size: 60,
-              color: Colors.grey[400],
-            ),
+            child: Icon(Icons.pets, size: 60, color: Colors.grey[400]),
           ),
           SizedBox(height: 24),
           Text(
@@ -438,10 +445,7 @@ class _MyPetsPageState extends State<MyPetsPage> {
           SizedBox(height: 8),
           Text(
             'Add your first pet to get started',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[400],
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.grey[400]),
           ),
           SizedBox(height: 32),
           ElevatedButton.icon(
@@ -466,12 +470,7 @@ class _MyPetsPageState extends State<MyPetsPage> {
     String imageUrl = '';
     if (pet['img1'] != null && pet['img1'].toString().isNotEmpty) {
       String imgPath = pet['img1'].toString();
-      // If it starts with /api/, add the base URL
-      if (imgPath.startsWith('/api/')) {
-        imageUrl = '$apiurl${imgPath}';
-      } else {
-        imageUrl = imgPath;
-      }
+      imageUrl = '$apiurl/$imgPath';
     }
 
     return Container(
@@ -506,24 +505,20 @@ class _MyPetsPageState extends State<MyPetsPage> {
                   borderRadius: BorderRadius.circular(12),
                   child: imageUrl.isNotEmpty
                       ? Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Colors.grey[700],
-                        child: Icon(
-                          Icons.pets,
-                          color: Colors.grey[400],
-                          size: 40,
-                        ),
-                      );
-                    },
-                  )
-                      : Icon(
-                    Icons.pets,
-                    color: Colors.grey[400],
-                    size: 40,
-                  ),
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey[700],
+                              child: Icon(
+                                Icons.pets,
+                                color: Colors.grey[400],
+                                size: 40,
+                              ),
+                            );
+                          },
+                        )
+                      : Icon(Icons.pets, color: Colors.grey[400], size: 40),
                 ),
               ),
               SizedBox(width: 16),
@@ -544,18 +539,17 @@ class _MyPetsPageState extends State<MyPetsPage> {
                     SizedBox(height: 4),
                     Text(
                       '${pet['animalTypeName'] ?? pet['animalName'] ?? 'Unknown'} • ${pet['breed'] ?? 'Mixed'}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[400],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[400]),
                     ),
                     SizedBox(height: 4),
                     Row(
                       children: [
                         Icon(
                           // Fix gender logic - your API returns 1 for male
-                          pet['gender'] == 1 || pet['gender'] == '1' ||
-                              pet['gender']?.toString().toLowerCase() == 'male'
+                          pet['gender'] == 1 ||
+                                  pet['gender'] == '1' ||
+                                  pet['gender']?.toString().toLowerCase() ==
+                                      'male'
                               ? Icons.male
                               : Icons.female,
                           size: 16,
@@ -563,7 +557,9 @@ class _MyPetsPageState extends State<MyPetsPage> {
                         ),
                         SizedBox(width: 4),
                         Text(
-                          pet['gender'] == '1' || pet['gender']?.toString().toLowerCase() == 'male'
+                          pet['gender'] == '1' ||
+                                  pet['gender']?.toString().toLowerCase() ==
+                                      'male'
                               ? 'Male'
                               : 'Female',
                           style: TextStyle(
@@ -572,11 +568,7 @@ class _MyPetsPageState extends State<MyPetsPage> {
                           ),
                         ),
                         SizedBox(width: 12),
-                        Icon(
-                          Icons.cake,
-                          size: 16,
-                          color: Colors.orange,
-                        ),
+                        Icon(Icons.cake, size: 16, color: Colors.orange),
                         SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -619,10 +611,7 @@ class _MyPetsPageState extends State<MyPetsPage> {
                 ),
                 child: IconButton(
                   onPressed: () => _showActionDialog(pet),
-                  icon: Icon(
-                    Icons.more_vert,
-                    color: Colors.blue,
-                  ),
+                  icon: Icon(Icons.more_vert, color: Colors.blue),
                 ),
               ),
             ],
@@ -639,10 +628,7 @@ class _MyPetsPageState extends State<MyPetsPage> {
       appBar: AppBar(
         title: Text(
           'My Pets',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: Color(0xFF2d2d2d),
         foregroundColor: Colors.white,
@@ -657,11 +643,7 @@ class _MyPetsPageState extends State<MyPetsPage> {
                   color: Colors.blue,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  Icons.add,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                child: Icon(Icons.add, color: Colors.white, size: 20),
               ),
             ),
           SizedBox(width: 8),
@@ -673,51 +655,47 @@ class _MyPetsPageState extends State<MyPetsPage> {
         color: Colors.blue,
         child: isLoading
             ? Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(color: Colors.blue),
-              SizedBox(height: 16),
-              Text(
-                'Loading your pets...',
-                style: TextStyle(color: Colors.grey[400]),
-              ),
-            ],
-          ),
-        )
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: Colors.blue),
+                    SizedBox(height: 16),
+                    Text(
+                      'Loading your pets...',
+                      style: TextStyle(color: Colors.grey[400]),
+                    ),
+                  ],
+                ),
+              )
             : hasError
             ? Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 64,
-                color: Colors.red,
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Failed to load pets',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(height: 24),
-              // Test buttons
-              Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: _fetchMyPets,
-                    child: Text('Retry (String ID)'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 64, color: Colors.red),
+                    SizedBox(height: 16),
+                    Text(
+                      'Failed to load pets',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 8),
-                  /*ElevatedButton(
+                    SizedBox(height: 24),
+                    // Test buttons
+                    Column(
+                      children: [
+                        ElevatedButton(
+                          onPressed: _fetchMyPets,
+                          child: Text('Retry (String ID)'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        /*ElevatedButton(
                     onPressed: _fetchMyPetsWithIntId,
                     child: Text('Try Integer ID'),
                     style: ElevatedButton.styleFrom(
@@ -725,22 +703,22 @@ class _MyPetsPageState extends State<MyPetsPage> {
                       foregroundColor: Colors.white,
                     ),
                   ),*/
-                ],
-              ),
-            ],
-          ),
-        )
+                      ],
+                    ),
+                  ],
+                ),
+              )
             : myPets.isEmpty
             ? _buildEmptyState()
             : Padding(
-          padding: EdgeInsets.all(16),
-          child: ListView.builder(
-            itemCount: myPets.length,
-            itemBuilder: (context, index) {
-              return _buildPetCard(myPets[index]);
-            },
-          ),
-        ),
+                padding: EdgeInsets.all(16),
+                child: ListView.builder(
+                  itemCount: myPets.length,
+                  itemBuilder: (context, index) {
+                    return _buildPetCard(myPets[index]);
+                  },
+                ),
+              ),
       ),
     );
   }

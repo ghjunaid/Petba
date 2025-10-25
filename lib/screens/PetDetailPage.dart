@@ -74,10 +74,7 @@ class _PetDetailPageState extends State<PetDetailPage> {
       backgroundColor: AppColor.primaryBackground,
       body: SingleChildScrollView(
         child: Column(
-          children: [
-            _buildTopImage(context),
-            _buildGlassmorphicCard(context),
-          ],
+          children: [_buildTopImage(context), _buildGlassmorphicCard(context)],
         ),
       ),
     );
@@ -107,10 +104,7 @@ class _PetDetailPageState extends State<PetDetailPage> {
                 decoration: BoxDecoration(
                   color: AppColor.glassBackground,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppColor.glassBorder,
-                    width: 1,
-                  ),
+                  border: Border.all(color: AppColor.glassBorder, width: 1),
                 ),
                 child: Icon(
                   Icons.arrow_back,
@@ -137,7 +131,7 @@ class _PetDetailPageState extends State<PetDetailPage> {
 
   Widget _buildGlassmorphicCard(BuildContext context) {
     return Transform.translate(
-      offset: Offset(0, -30),
+      offset: Offset(0, -60),
       child: GlassContainer(
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
         blur: 15,
@@ -194,18 +188,11 @@ class _PetDetailPageState extends State<PetDetailPage> {
         SizedBox(height: 8),
         Row(
           children: [
-            Icon(
-              Icons.location_on,
-              color: AppColor.glassLabelColor,
-              size: 16,
-            ),
+            Icon(Icons.location_on, color: AppColor.glassLabelColor, size: 16),
             SizedBox(width: 4),
             Text(
               widget.pet.city,
-              style: TextStyle(
-                color: AppColor.glassLabelColor,
-                fontSize: 16,
-              ),
+              style: TextStyle(color: AppColor.glassLabelColor, fontSize: 16),
             ),
           ],
         ),
@@ -219,9 +206,21 @@ class _PetDetailPageState extends State<PetDetailPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _buildAttributeCard(Icons.transgender, "Sex", widget.pet.gender == 1 ? 'Male' : 'Female'),
-        _buildAttributeCard(Icons.color_lens_outlined, "Breed", widget.pet.breed),
-        _buildAttributeCard(Icons.query_builder, "Age", _calculateAge(widget.pet.dob)),
+        _buildAttributeCard(
+          Icons.transgender,
+          "Sex",
+          widget.pet.gender == 1 ? 'Male' : 'Female',
+        ),
+        _buildAttributeCard(
+          Icons.color_lens_outlined,
+          "Breed",
+          widget.pet.breed,
+        ),
+        _buildAttributeCard(
+          Icons.query_builder,
+          "Age",
+          _calculateAge(widget.pet.dob),
+        ),
       ],
     );
   }
@@ -232,25 +231,15 @@ class _PetDetailPageState extends State<PetDetailPage> {
       decoration: BoxDecoration(
         color: AppColor.glassBackground,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColor.glassBorder,
-          width: 1,
-        ),
+        border: Border.all(color: AppColor.glassBorder, width: 1),
       ),
       child: Column(
         children: [
-          Icon(
-            icon,
-            color: AppColor.glassTextColor,
-            size: 20,
-          ),
+          Icon(icon, color: AppColor.glassTextColor, size: 20),
           SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(
-              color: AppColor.glassLabelColor,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: AppColor.glassLabelColor, fontSize: 12),
           ),
           Text(
             value,
@@ -274,10 +263,7 @@ class _PetDetailPageState extends State<PetDetailPage> {
       decoration: BoxDecoration(
         color: AppColor.glassBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColor.glassBorder,
-          width: 1,
-        ),
+        border: Border.all(color: AppColor.glassBorder, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -308,10 +294,11 @@ class _PetDetailPageState extends State<PetDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isLoadingOwner 
-                        ? "Loading..." 
-                        : ownerInfo != null 
-                          ? "${ownerInfo!['firstname'] ?? ''} ${ownerInfo!['lastname'] ?? ''}".trim()
+                      isLoadingOwner
+                          ? "Loading..."
+                          : ownerInfo != null
+                          ? "${ownerInfo!['firstname'] ?? ''} ${ownerInfo!['lastname'] ?? ''}"
+                                .trim()
                           : "Pet Owner",
                       style: TextStyle(
                         color: AppColor.glassTextColor,
@@ -320,10 +307,11 @@ class _PetDetailPageState extends State<PetDetailPage> {
                       ),
                     ),
                     Text(
-                      isLoadingOwner 
-                        ? "Loading owner info..." 
-                        : ownerInfo != null 
-                          ? ownerInfo!['email'] ?? "Customer ID: ${widget.pet.cId}"
+                      isLoadingOwner
+                          ? "Loading owner info..."
+                          : ownerInfo != null
+                          ? ownerInfo!['email'] ??
+                                "Customer ID: ${widget.pet.cId}"
                           : "Customer ID: ${widget.pet.cId}",
                       style: TextStyle(
                         color: AppColor.glassLabelColor,
@@ -363,11 +351,7 @@ class _PetDetailPageState extends State<PetDetailPage> {
           color: AppColor.primaryBlue,
           borderRadius: BorderRadius.circular(20),
         ),
-        child: Icon(
-          icon,
-          color: Colors.white,
-          size: 20,
-        ),
+        child: Icon(icon, color: Colors.white, size: 20),
       ),
     );
   }
@@ -386,7 +370,9 @@ class _PetDetailPageState extends State<PetDetailPage> {
         ),
         SizedBox(height: 8),
         Text(
-          "This is a wonderful ${widget.pet.animalName.toLowerCase()} named ${widget.pet.name.toLowerCase()}. They are ${widget.pet.gender == 1 ? 'male' : 'female'} and ${widget.pet.breed.toLowerCase()} breed. This lovely pet is looking for a caring home and would make a great companion.",
+          widget.pet.note.isNotEmpty
+              ? widget.pet.note
+              : "This is a wonderful ${widget.pet.animalName.toLowerCase()} named ${widget.pet.name.toLowerCase()}. They are ${widget.pet.gender == 1 ? 'male' : 'female'} and ${widget.pet.breed.toLowerCase()} breed. This lovely pet is looking for a caring home and would make a great companion.",
           style: TextStyle(
             color: AppColor.glassLabelColor,
             fontSize: 16,
@@ -398,10 +384,7 @@ class _PetDetailPageState extends State<PetDetailPage> {
           children: [
             Text(
               "Pet ID: ${widget.pet.adoptId}",
-              style: TextStyle(
-                color: AppColor.glassLabelColor,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: AppColor.glassLabelColor, fontSize: 14),
             ),
           ],
         ),
@@ -515,7 +498,8 @@ class _PetDetailPageState extends State<PetDetailPage> {
 
       final currentUserId = userData['customer_id'] ?? userData['id'];
       print('Current User ID: $currentUserId');
-      final currentUserName = '${userData['firstname']} ${userData['lastname']}';
+      final currentUserName =
+          '${userData['firstname']} ${userData['lastname']}';
       print('Current Nameee: $currentUserName');
 
       // Create UserModel for current user
@@ -532,7 +516,6 @@ class _PetDetailPageState extends State<PetDetailPage> {
 
       // Initialize socket service
       final socketService = SocketService.getInstance();
-
 
       // Store reference to created chat
       ChatModel? createdChatModel;
@@ -588,13 +571,18 @@ class _PetDetailPageState extends State<PetDetailPage> {
         petImageUrl: '$apiurl/${widget.pet.img1}',
         petBreed: widget.pet.breed,
         petType: widget.pet.animalName,
-        ownerName: ownerInfo != null ? "${ownerInfo!['firstname'] ?? ''} ${ownerInfo!['lastname'] ?? ''}".trim() : "Pet Owner",
+        ownerName: ownerInfo != null
+            ? "${ownerInfo!['firstname'] ?? ''} ${ownerInfo!['lastname'] ?? ''}"
+                  .trim()
+            : "Pet Owner",
         interestedUserName: currentUserName,
       );
 
       // Wait for chat creation response
       int attempts = 0;
-      while (createdChatModel == null && conversationId == null && attempts < 10) {
+      while (createdChatModel == null &&
+          conversationId == null &&
+          attempts < 10) {
         await Future.delayed(Duration(milliseconds: 500));
         attempts++;
       }
@@ -603,11 +591,15 @@ class _PetDetailPageState extends State<PetDetailPage> {
 
       if (createdChatModel != null && conversationId != null) {
         socketService.sendMessage(
-          message: "Hi! I'm interested in adopting ${widget.pet.name}. Can we discuss the details?",
+          message:
+              "Hi! I'm interested in adopting ${widget.pet.name}. Can we discuss the details?",
           sourceId: currentUserId,
           targetId: widget.pet.cId,
           senderName: currentUserName,
-          receiverName: ownerInfo != null ? "${ownerInfo!['firstname'] ?? ''} ${ownerInfo!['lastname'] ?? ''}".trim() : "Pet Owner",
+          receiverName: ownerInfo != null
+              ? "${ownerInfo!['firstname'] ?? ''} ${ownerInfo!['lastname'] ?? ''}"
+                    .trim()
+              : "Pet Owner",
           adoptionId: widget.pet.adoptId.toString(),
           petName: widget.pet.name,
         );
@@ -642,7 +634,10 @@ class _PetDetailPageState extends State<PetDetailPage> {
           currentMessage: "Chat started for ${widget.pet.name} adoption",
           id: widget.pet.adoptId,
           ownerId: widget.pet.cId,
-          ownerName: ownerInfo != null ? "${ownerInfo!['firstname'] ?? ''} ${ownerInfo!['lastname'] ?? ''}".trim() : "Pet Owner",
+          ownerName: ownerInfo != null
+              ? "${ownerInfo!['firstname'] ?? ''} ${ownerInfo!['lastname'] ?? ''}"
+                    .trim()
+              : "Pet Owner",
           petName: widget.pet.name,
           petBreed: widget.pet.breed,
           petType: widget.pet.animalName,
@@ -677,7 +672,6 @@ class _PetDetailPageState extends State<PetDetailPage> {
           ),
         );
       }
-
     } catch (e) {
       Navigator.pop(context); // Close loading dialog if still open
       print('Exception in _handleAdoptRequest: $e');

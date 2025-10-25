@@ -1,4 +1,3 @@
-
 class AdoptionPet {
   final int adoptId;
   final int cId;
@@ -9,6 +8,7 @@ class AdoptionPet {
   final String city;
   final String animalName;
   final String breed;
+  final String note;
 
   AdoptionPet({
     required this.adoptId,
@@ -20,6 +20,7 @@ class AdoptionPet {
     required this.city,
     required this.animalName,
     required this.breed,
+    required this.note,
   });
 
   factory AdoptionPet.fromJson(Map<String, dynamic> json) {
@@ -33,6 +34,7 @@ class AdoptionPet {
       city: json['city'] ?? '',
       animalName: json['animalName'] ?? '',
       breed: json['breed'] ?? '',
+      note: json['note'] ?? '',
     );
   }
 }

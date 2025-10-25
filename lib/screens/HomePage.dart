@@ -63,6 +63,7 @@ class _HomePageState extends State<HomePage> {
     fetchCartItemCount();
     _cartNotifier.addListener(_onCartChanged);
   }
+
   @override
   void dispose() {
     _cartNotifier.removeListener(_onCartChanged);
@@ -95,7 +96,7 @@ class _HomePageState extends State<HomePage> {
             'customer_id': authData['customer_id'].toString(),
             'email': authData['email'],
             'token': authData['token'],
-          }
+          },
         }),
       );
 
@@ -176,7 +177,7 @@ class _HomePageState extends State<HomePage> {
     fetchCartItemCount();
   }
 
-//API
+  //API
   Future<void> _fetchDashboardData() async {
     try {
       setState(() {
@@ -186,7 +187,6 @@ class _HomePageState extends State<HomePage> {
 
       final cityId = await UserDataService.getCityId();
       print('Retrieved cityId: $cityId');
-
 
       final customerIdResult = await UserDataService.getCustomerId();
       customerId = customerIdResult?.toString();
@@ -230,40 +230,43 @@ class _HomePageState extends State<HomePage> {
             .map((item) => AdoptionPet.fromJson(item))
             .toList();
 
-// latest products (inside latestproduct list)
+        // Filter out user's own pets from adoption list
+        final filteredAdoptionPets = adoptionPets
+            .where((pet) => pet.cId.toString() != customerId)
+            .toList();
+
+        // latest products (inside latestproduct list)
         final latestProductsData =
             data['latest']?['original']?['latestproduct'] ?? [];
         final latestProducts = (latestProductsData as List)
             .map((item) => DashboardProduct.fromJson(item))
             .toList();
 
-// special products (inside discountedproducts list)
+        // special products (inside discountedproducts list)
         final specialProductsData =
             data['special']?['original']?['discountedproducts'] ?? [];
         final specialProducts = (specialProductsData as List)
             .map((item) => DashboardProduct.fromJson(item))
             .toList();
 
-// banners (already list at top level)
+        // banners (already list at top level)
         final bannerData = data['banner'] ?? [];
         final banners = (bannerData as List)
             .map((item) => BannerItem.fromJson(item))
             .toList();
 
-// rescue pets (check if list, otherwise empty)
+        // rescue pets (check if list, otherwise empty)
         final rescueOriginal = data['rescueListhome']?['original'];
         final rescueData =
-        (rescueOriginal is Map && rescueOriginal.containsKey('data'))
+            (rescueOriginal is Map && rescueOriginal.containsKey('data'))
             ? rescueOriginal['data']
             : [];
         final rescuePets = (rescueData as List)
             .map((item) => RescuePet.fromJson(item))
             .toList();
 
-
-
         setState(() {
-          _adoptionPets = adoptionPets;
+          _adoptionPets = filteredAdoptionPets;
           _latestProducts = latestProducts;
           _specialProducts = specialProducts;
           _banners = banners;
@@ -293,7 +296,7 @@ class _HomePageState extends State<HomePage> {
       } else {
         setState(() {
           _dashboardError =
-          'Failed to load dashboard data (Status: ${response.statusCode})';
+              'Failed to load dashboard data (Status: ${response.statusCode})';
           _isLoadingDashboard = false;
         });
       }
@@ -373,7 +376,9 @@ class _HomePageState extends State<HomePage> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => RescuePage(customerId: customerId!)),
+                  MaterialPageRoute(
+                    builder: (context) => RescuePage(customerId: customerId!),
+                  ),
                 );
               },
             ),
@@ -388,7 +393,10 @@ class _HomePageState extends State<HomePage> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => AddRescuePage(customerId: customerId!)),
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        AddRescuePage(customerId: customerId!),
+                  ),
                 );
               },
             ),
@@ -457,7 +465,12 @@ class _HomePageState extends State<HomePage> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ServiceListPage(serviceType: 3,customerId: customerId!)),
+                  MaterialPageRoute(
+                    builder: (context) => ServiceListPage(
+                      serviceType: 3,
+                      customerId: customerId!,
+                    ),
+                  ),
                 );
               },
             ),
@@ -475,7 +488,12 @@ class _HomePageState extends State<HomePage> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ServiceListPage(serviceType: 1,customerId: customerId!)),
+                  MaterialPageRoute(
+                    builder: (context) => ServiceListPage(
+                      serviceType: 1,
+                      customerId: customerId!,
+                    ),
+                  ),
                 );
               },
             ),
@@ -487,7 +505,10 @@ class _HomePageState extends State<HomePage> {
             ),
             ListTile(
               contentPadding: const EdgeInsets.only(left: 20.0),
-              leading: Icon(FontAwesomeIcons.solidHeart, color: AppColors.white),
+              leading: Icon(
+                FontAwesomeIcons.solidHeart,
+                color: AppColors.white,
+              ),
               title: Text(
                 'Wishlist',
                 style: TextStyle(fontSize: 18, color: AppColors.white),
@@ -511,7 +532,9 @@ class _HomePageState extends State<HomePage> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => OrderHistoryPage(customerId: "48")),
+                  MaterialPageRoute(
+                    builder: (context) => OrderHistoryPage(customerId: "48"),
+                  ),
                 );
               },
             ),
@@ -565,12 +588,13 @@ class _HomePageState extends State<HomePage> {
                           onPressed: () async {
                             Navigator.of(context).pop();
                             SharedPreferences prefs =
-                            await SharedPreferences.getInstance();
+                                await SharedPreferences.getInstance();
                             await prefs.clear();
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => LoginPage()),
+                                builder: (context) => LoginPage(),
+                              ),
                             );
                           },
                           child: const Text(
@@ -613,7 +637,10 @@ class _HomePageState extends State<HomePage> {
           children: [
             Image.asset('images/Logo.png', width: 20, height: 20),
             SizedBox(width: 8),
-            Text('Petba', style: TextStyle(color: AppColors.white, fontSize: 20)),
+            Text(
+              'Petba',
+              style: TextStyle(color: AppColors.white, fontSize: 20),
+            ),
           ],
         ),
         actions: [
@@ -796,7 +823,11 @@ class _HomePageState extends State<HomePage> {
                       ),
                     if (_dashboardError.isNotEmpty)
                       IconButton(
-                        icon: Icon(Icons.refresh, color: AppColors.blue, size: 20),
+                        icon: Icon(
+                          Icons.refresh,
+                          color: AppColors.blue,
+                          size: 20,
+                        ),
                         onPressed: _fetchDashboardData,
                         padding: EdgeInsets.zero,
                         constraints: BoxConstraints(),
@@ -841,7 +872,10 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => RescuePage(customerId: customerId!)),
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            RescuePage(customerId: customerId!),
+                      ),
                     );
                   },
                   child: Text(
@@ -854,17 +888,18 @@ class _HomePageState extends State<HomePage> {
             SizedBox(height: 8),
             Container(
               height: 180,
-              child: _rescuePets.isNotEmpty ? _buildRescuePetsList() : Center(
-                child: Text(
-                  "no pets for rescue in this city",
-                  style: TextStyle(
-                    color: AppColors.grey,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              )
-
+              child: _rescuePets.isNotEmpty
+                  ? _buildRescuePetsList()
+                  : Center(
+                      child: Text(
+                        "no pets for rescue in this city",
+                        style: TextStyle(
+                          color: AppColors.grey,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
             ),
             SizedBox(height: 20),
 
@@ -926,7 +961,9 @@ class _HomePageState extends State<HomePage> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => SpecialProductsScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => SpecialProductsScreen(),
+                        ),
                       );
                     },
                     child: Text(
@@ -999,14 +1036,12 @@ class _HomePageState extends State<HomePage> {
         width: double.infinity,
         height: 200,
         decoration: BoxDecoration(
-          color:AppColors.primaryColor,
+          color: AppColors.primaryColor,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Center(child: CircularProgressIndicator(color: AppColors.blue)),
       );
     }
-
-
 
     return Container(
       height: 200,
@@ -1055,7 +1090,7 @@ class _HomePageState extends State<HomePage> {
                         color: AppColors.blue,
                         value: loadingProgress.expectedTotalBytes != null
                             ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
+                                  loadingProgress.expectedTotalBytes!
                             : null,
                       ),
                     ),
@@ -1168,7 +1203,7 @@ class _HomePageState extends State<HomePage> {
       width: 140,
       margin: EdgeInsets.only(right: 8),
       decoration: BoxDecoration(
-        color:AppColors.primaryColor,
+        color: AppColors.primaryColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -1190,45 +1225,45 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   pet.img1.isNotEmpty
                       ? Image.network(
-                    '$apiurl/${pet.img1}',
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: AppColors.grey,
-                        child: Icon(
-                          Icons.pets,
-                          size: 40,
+                          '$apiurl/${pet.img1}',
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: AppColors.grey,
+                              child: Icon(
+                                Icons.pets,
+                                size: 40,
+                                color: AppColors.grey,
+                              ),
+                            );
+                          },
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              color: AppColors.grey,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.blue,
+                                  value:
+                                      loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      : Container(
                           color: AppColors.grey,
-                        ),
-                      );
-                    },
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        color: AppColors.grey,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: AppColors.blue,
-                            value:
-                            loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                                : null,
+                          child: Icon(
+                            Icons.pets,
+                            size: 40,
+                            color: AppColors.grey,
                           ),
                         ),
-                      );
-                    },
-                  )
-                      : Container(
-                    color: AppColors.grey,
-                    child: Icon(
-                      Icons.pets,
-                      size: 40,
-                      color: AppColors.grey,
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -1251,7 +1286,7 @@ class _HomePageState extends State<HomePage> {
                 SizedBox(height: 4),
                 Text(
                   _calculateAge(pet.dob),
-                  style: TextStyle(fontSize: 12, color:AppColors.grey),
+                  style: TextStyle(fontSize: 12, color: AppColors.grey),
                 ),
                 SizedBox(height: 2),
                 Row(
@@ -1264,10 +1299,7 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(width: 2),
                     Text(
                       pet.gender == 1 ? 'Male' : 'Female',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color:AppColors.grey,
-                      ),
+                      style: TextStyle(fontSize: 10, color: AppColors.grey),
                     ),
                   ],
                 ),
@@ -1281,9 +1313,9 @@ class _HomePageState extends State<HomePage> {
 
   // Method to build dashboard product card with API data
   Widget _buildDashboardProductCard(
-      DashboardProduct product, {
-        bool isSpecial = false,
-      }) {
+    DashboardProduct product, {
+    bool isSpecial = false,
+  }) {
     final double price = double.tryParse(product.price) ?? 0;
     final double? specialPrice = product.specialprice != null
         ? double.tryParse(product.specialprice!)
@@ -1351,7 +1383,7 @@ class _HomePageState extends State<HomePage> {
                               color: AppColors.blue,
                               value: loadingProgress.expectedTotalBytes != null
                                   ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
+                                        loadingProgress.expectedTotalBytes!
                                   : null,
                             ),
                           ),
@@ -1433,15 +1465,11 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ],
                           ],
-
                         ),
                         SizedBox(height: 2),
                         Text(
                           'Brand: ${product.brand}',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: AppColors.grey,
-                          ),
+                          style: TextStyle(fontSize: 10, color: AppColors.grey),
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
@@ -1464,7 +1492,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
 
   Widget _buildRescuePetCard(String status, String gender, String image) {
     return Container(
@@ -1541,10 +1568,7 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(width: 2),
                     Text(
                       gender,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.grey,
-                      ),
+                      style: TextStyle(fontSize: 12, color: AppColors.grey),
                     ),
                   ],
                 ),
@@ -1556,13 +1580,12 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
   Widget _buildServiceIcon(
-      BuildContext context,
-      IconData icon,
-      String label,
-      Color color,
-      ) {
+    BuildContext context,
+    IconData icon,
+    String label,
+    Color color,
+  ) {
     return GestureDetector(
       onTap: () => _navigateToPage(context, label),
       child: Column(
@@ -1571,7 +1594,7 @@ class _HomePageState extends State<HomePage> {
             width: 70,
             height: 70,
             decoration: BoxDecoration(
-              color:AppColors.primaryColor,
+              color: AppColors.primaryColor,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: color, width: 2),
             ),
@@ -1633,12 +1656,11 @@ class _HomePageState extends State<HomePage> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: Colors.white, width: 1),
               ),
-              constraints: BoxConstraints(
-                minWidth: 18,
-                minHeight: 18,
-              ),
+              constraints: BoxConstraints(minWidth: 18, minHeight: 18),
               child: Text(
-                _cartNotifier.cartCount > 99 ? '99+' : _cartNotifier.cartCount.toString(),
+                _cartNotifier.cartCount > 99
+                    ? '99+'
+                    : _cartNotifier.cartCount.toString(),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 10,
@@ -1655,19 +1677,27 @@ class _HomePageState extends State<HomePage> {
   Widget _buildApiRescuePetCard(RescuePet pet) {
     String getStatusText(int status) {
       switch (status) {
-        case 1: return 'Active';
-        case 2: return 'In Progress';
-        case 3: return 'Rescued';
-        default: return 'Unknown';
+        case 1:
+          return 'Active';
+        case 2:
+          return 'In Progress';
+        case 3:
+          return 'Rescued';
+        default:
+          return 'Unknown';
       }
     }
 
     Color getStatusColor(int status) {
       switch (status) {
-        case 1: return AppColors.red;
-        case 2: return Colors.orange;
-        case 3: return AppColors.green;
-        default: return AppColors.grey;
+        case 1:
+          return AppColors.red;
+        case 2:
+          return Colors.orange;
+        case 3:
+          return AppColors.green;
+        default:
+          return AppColors.grey;
       }
     }
 
@@ -1697,29 +1727,29 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   pet.img1.isNotEmpty
                       ? Image.network(
-                    '$apiurl/${pet.img1}',
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: AppColors.grey,
-                        child: Icon(
-                          Icons.pets,
-                          size: 30,
-                          color: AppColors.grey,
-                        ),
-                      );
-                    },
-                  )
+                          '$apiurl/${pet.img1}',
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: AppColors.grey,
+                              child: Icon(
+                                Icons.pets,
+                                size: 30,
+                                color: AppColors.grey,
+                              ),
+                            );
+                          },
+                        )
                       : Container(
-                    color: AppColors.grey,
-                    child: Icon(
-                      Icons.pets,
-                      size: 30,
-                      color: AppColors.grey,
-                    ),
-                  ),
+                          color: AppColors.grey,
+                          child: Icon(
+                            Icons.pets,
+                            size: 30,
+                            color: AppColors.grey,
+                          ),
+                        ),
                   Positioned(
                     top: 8,
                     left: 8,
@@ -1761,10 +1791,7 @@ class _HomePageState extends State<HomePage> {
                 SizedBox(height: 4),
                 Text(
                   pet.address,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: AppColors.grey,
-                  ),
+                  style: TextStyle(fontSize: 10, color: AppColors.grey),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1779,19 +1806,13 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(width: 2),
                     Text(
                       pet.gender == 1 ? 'Male' : 'Female',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.grey,
-                      ),
+                      style: TextStyle(fontSize: 12, color: AppColors.grey),
                     ),
                     if (pet.distance > 0) ...[
                       Spacer(),
                       Text(
                         '${pet.distance.toStringAsFixed(1)} km',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: AppColors.grey,
-                        ),
+                        style: TextStyle(fontSize: 10, color: AppColors.grey),
                       ),
                     ],
                   ],
@@ -1862,7 +1883,10 @@ class _HomePageState extends State<HomePage> {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => AddRescuePage(customerId: customerId!)),
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          AddRescuePage(customerId: customerId!),
+                    ),
                   );
                 },
               ),
@@ -1915,7 +1939,9 @@ class _HomePageState extends State<HomePage> {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => AddPetPage(customerId: customerId!)),
+                    MaterialPageRoute(
+                      builder: (context) => AddPetPage(customerId: customerId!),
+                    ),
                   );
                 },
               ),
@@ -1970,8 +1996,8 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute(
         builder: (context) => AddAdoptionPage(
           customerId: customerId!, // Now safe to use ! after validation
-          email: email!,           // Now safe to use ! after validation
-          token: token,           // This can be null as per your constructor
+          email: email!, // Now safe to use ! after validation
+          token: token, // This can be null as per your constructor
         ),
       ),
     );
@@ -1984,34 +2010,49 @@ class _HomePageState extends State<HomePage> {
       case 'vets':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ServiceListPage(serviceType: 1,customerId: customerId!)),
+          MaterialPageRoute(
+            builder: (context) =>
+                ServiceListPage(serviceType: 1, customerId: customerId!),
+          ),
         );
         return;
 
       case 'shelters':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ServiceListPage(serviceType: 2,customerId: customerId!)),
+          MaterialPageRoute(
+            builder: (context) =>
+                ServiceListPage(serviceType: 2, customerId: customerId!),
+          ),
         );
         return;
 
       case 'groomers':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ServiceListPage(serviceType: 3,customerId: customerId!)),
+          MaterialPageRoute(
+            builder: (context) =>
+                ServiceListPage(serviceType: 3, customerId: customerId!),
+          ),
         );
         return;
       case 'trainers':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ServiceListPage(serviceType: 4,customerId: customerId!)),
+          MaterialPageRoute(
+            builder: (context) =>
+                ServiceListPage(serviceType: 4, customerId: customerId!),
+          ),
         );
         return;
 
       case 'fosters':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ServiceListPage(serviceType: 5,customerId: customerId!)),
+          MaterialPageRoute(
+            builder: (context) =>
+                ServiceListPage(serviceType: 5, customerId: customerId!),
+          ),
         );
         return;
       case 'take a snap':
@@ -2023,7 +2064,9 @@ class _HomePageState extends State<HomePage> {
       case 'Rescue':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => RescuePage(customerId: customerId!)),
+          MaterialPageRoute(
+            builder: (context) => RescuePage(customerId: customerId!),
+          ),
         );
         return;
       default:
@@ -2038,9 +2081,9 @@ class _HomePageState extends State<HomePage> {
 
   // Dashboard Product details modal method
   void _showDashboardProductDetailsModal(
-      BuildContext context,
-      DashboardProduct product,
-      ) {
+    BuildContext context,
+    DashboardProduct product,
+  ) {
     final double price = double.tryParse(product.price) ?? 0;
     final double? specialPrice = product.specialprice != null
         ? double.tryParse(product.specialprice!)
@@ -2137,7 +2180,10 @@ class _HomePageState extends State<HomePage> {
                           ),
                           child: Text(
                             product.brand,
-                            style: TextStyle(color: AppColors.blue, fontSize: 12),
+                            style: TextStyle(
+                              color: AppColors.blue,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                         SizedBox(width: 8),
@@ -2152,7 +2198,10 @@ class _HomePageState extends State<HomePage> {
                           ),
                           child: Text(
                             product.category,
-                            style: TextStyle(color: AppColors.green, fontSize: 12),
+                            style: TextStyle(
+                              color: AppColors.green,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                       ],
@@ -2295,16 +2344,16 @@ class _HomePageState extends State<HomePage> {
                           child: ElevatedButton(
                             onPressed: product.quantity > 0
                                 ? () {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    '${product.name} added to cart!',
-                                  ),
-                                  backgroundColor: AppColors.green,
-                                ),
-                              );
-                            }
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          '${product.name} added to cart!',
+                                        ),
+                                        backgroundColor: AppColors.green,
+                                      ),
+                                    );
+                                  }
                                 : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: product.quantity > 0
@@ -2451,13 +2500,12 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute(
         builder: (context) => MyPetsPage(
           customerId: customerId!, // Now safe to use ! after validation
-          email: email!,           // Now safe to use ! after validation
-          token: token,           // This can be null as per your constructor
+          email: email!, // Now safe to use ! after validation
+          token: token, // This can be null as per your constructor
         ),
       ),
     );
   }
-
 
   Future<void> _navigateToCart() async {
     try {
@@ -2501,6 +2549,3 @@ class _HomePageState extends State<HomePage> {
     }
   }
 }
-
-
-
