@@ -27,6 +27,8 @@ import 'package:petba_new/screens/OrderScreen.dart';
 import 'package:petba_new/models/adoption.dart';
 import 'package:petba_new/models/dashboard.dart';
 import 'package:petba_new/chat/Pages/LoginScreen.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:petba_new/widgets/rescue_details_modal.dart';
 
 import 'RescuePet.dart';
 import 'SignIn.dart';
@@ -53,6 +55,7 @@ class _HomePageState extends State<HomePage> {
   double? currentLatitude;
   double? currentLongitude;
   List<RescuePet> _rescuePets = [];
+  double _rescueRadiusKm = 50.0; // radius for nearby rescues
 
   final CartNotifier _cartNotifier = CartNotifier();
 
@@ -62,6 +65,7 @@ class _HomePageState extends State<HomePage> {
     _fetchDashboardData();
     fetchCartItemCount();
     _cartNotifier.addListener(_onCartChanged);
+    _initLocationAndNearbyRescues();
   }
 
   @override
@@ -255,10 +259,11 @@ class _HomePageState extends State<HomePage> {
             .map((item) => BannerItem.fromJson(item))
             .toList();
 
-        // rescue pets (check if list, otherwise empty)
+        // rescue pets (supports original as List or as Map with data key)
         final rescueOriginal = data['rescueListhome']?['original'];
-        final rescueData =
-            (rescueOriginal is Map && rescueOriginal.containsKey('data'))
+        final dynamic rescueData = (rescueOriginal is List)
+            ? rescueOriginal
+            : (rescueOriginal is Map && rescueOriginal['data'] is List)
             ? rescueOriginal['data']
             : [];
         final rescuePets = (rescueData as List)
@@ -273,6 +278,8 @@ class _HomePageState extends State<HomePage> {
           _isLoadingDashboard = false;
           _rescuePets = rescuePets;
         });
+        // Refresh rescue pets using user's current location (non-blocking)
+        _fetchNearbyRescues();
       } else if (response.statusCode == 401) {
         setState(() {
           _dashboardError = 'Session expired. Please login again.';
@@ -308,6 +315,104 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _initLocationAndNearbyRescues() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        print('Location services disabled.');
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          print('Location permission denied.');
+          return;
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        print('Location permission permanently denied.');
+        return;
+      }
+
+      final pos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      if (!mounted) return;
+      setState(() {
+        currentLatitude = pos.latitude;
+        currentLongitude = pos.longitude;
+      });
+      await _fetchNearbyRescues();
+    } catch (e) {
+      print('Error initializing location: $e');
+    }
+  }
+
+  Future<void> _fetchNearbyRescues() async {
+    try {
+      if (currentLatitude == null || currentLongitude == null) return;
+
+      final requestBody = {
+        'c_id': null,
+        'latitude': currentLatitude,
+        'longitude': currentLongitude,
+        'lastPet': null,
+        'filter': {'condition': [], 'animalType': [], 'gender': [], 'city': []},
+        'sort': '1',
+      };
+
+      final response = await http.post(
+        Uri.parse('$apiurl/api/rescueList'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        List<dynamic> items = data['rescueList'] ?? [];
+
+        // Compute distances client-side and filter by radius
+        final List<Map<String, dynamic>> enriched = items
+            .map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e))
+            .toList();
+        for (final item in enriched) {
+          try {
+            final petLat = double.tryParse(item['latitude']?.toString() ?? '');
+            final petLng = double.tryParse(item['longitude']?.toString() ?? '');
+            if (petLat != null && petLng != null) {
+              final meters = Geolocator.distanceBetween(
+                currentLatitude!,
+                currentLongitude!,
+                petLat,
+                petLng,
+              );
+              item['Distance'] = meters / 1000.0;
+            }
+          } catch (_) {}
+        }
+
+        final nearby = enriched.where((m) {
+          final d = double.tryParse(m['Distance']?.toString() ?? '');
+          return d == null ? true : d <= _rescueRadiusKm;
+        }).toList();
+
+        final rescuePets = nearby.map((m) => RescuePet.fromJson(m)).toList();
+        if (mounted) {
+          setState(() {
+            _rescuePets = rescuePets;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching nearby rescues: $e');
+    }
+  }
+
   String _calculateAge(String dob) {
     try {
       final DateTime birthDate = DateTime.parse(dob);
@@ -325,6 +430,24 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       return 'Age unknown';
     }
+  }
+
+  // Fixed image URL construction
+  String _constructImageUrl(String imagePath) {
+    if (imagePath.isEmpty) return '';
+
+    // If it already starts with http, return as is
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+
+    // Remove leading slash if present to avoid double slashes
+    String cleanPath = imagePath.startsWith('/')
+        ? imagePath.substring(1)
+        : imagePath;
+
+    // Construct full URL
+    return '$apiurl/$cleanPath';
   }
 
   @override
@@ -1623,14 +1746,23 @@ class _HomePageState extends State<HomePage> {
       padding: EdgeInsets.symmetric(horizontal: 4),
       itemCount: _rescuePets.length,
       itemBuilder: (context, index) {
+        final pet = _rescuePets[index];
         return GestureDetector(
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => PageWork()),
-            );
+            final rescueMap = <String, dynamic>{
+              'img1': pet.img1,
+              'address': pet.address,
+              'ConditionType': pet.conditionType,
+              'conditionLevel_id': pet.conditionStatus,
+              'status': pet.conditionStatus,
+              'city': '',
+              'Distance': pet.distance,
+              'description': '',
+              'apiurl': apiurl,
+            };
+            showRescueDetailsModal(context, rescueMap);
           },
-          child: _buildApiRescuePetCard(_rescuePets[index]),
+          child: _buildApiRescuePetCard(pet),
         );
       },
     );
@@ -1727,7 +1859,7 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   pet.img1.isNotEmpty
                       ? Image.network(
-                          '$apiurl/${pet.img1}',
+                          _constructImageUrl(pet.img1),
                           fit: BoxFit.cover,
                           width: double.infinity,
                           height: double.infinity,

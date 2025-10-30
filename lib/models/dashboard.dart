@@ -89,7 +89,8 @@ class RescuePet {
       id: json['id'] ?? 0,
       img1: json['img1'] ?? '',
       address: json['address'] ?? '',
-      conditionType: json['conditionType'] ?? 'Minor Injury',
+      conditionType:
+          json['conditionType'] ?? json['ConditionType'] ?? 'Minor Injury',
       conditionStatus: json['conditionStatus'] ?? 1,
       gender: json['gender'] ?? 1,
       distance: (json['Distance'] ?? 0).toDouble(),
